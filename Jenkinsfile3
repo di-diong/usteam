@@ -47,7 +47,7 @@ pipeline {
                     ]],
                     credentialsId: 'nexus-cred',
                     groupId: 'Petclinic',
-                    nexusUrl: 'nexus.everythingops.io',
+                    nexusUrl: 'nexus.didiops.space',
                     nexusVersion: 'nexus3',
                     protocol: 'https',
                     repository: 'nexus-repo',
@@ -56,7 +56,7 @@ pipeline {
             }
             stage('Build Docker Image') {
                 steps {
-                    sh 'docker build -t 15.236.133.155:8085/petclinicapps:latest .'
+                    sh 'docker build -t 13.36.166.26:8085/petclinicapps:latest .'
             }
         }
             stage('Login to Nexus Docker Repo') {
@@ -67,7 +67,7 @@ pipeline {
                         passwordVariable: 'DOCKER_PASS'
                     )]) {
                         sh '''
-                            echo "$DOCKER_PASS" | docker login 15.236.133.155:8085 \
+                            echo "$DOCKER_PASS" | docker login 13.36.166.26:8085 \
                             --username "$DOCKER_USER" --password-stdin
                         '''
                     }
@@ -75,13 +75,13 @@ pipeline {
             } 
             stage('Trivy Image Scan') {
                 steps {
-                    sh 'trivy image --insecure -f table 15.236.133.155:8085/petclinicapps:latest'
+                    sh 'trivy image --insecure -f table 13.36.166.26:8085/petclinicapps:latest'
                 }
             }
     
             stage('Push to Nexus Docker Repo') {
                 steps {
-                    sh 'docker push 15.236.133.155:8085/petclinicapps:latest'
+                    sh 'docker push 13.36.166.26:8085/petclinicapps:latest'
                 }
             }
     
@@ -139,7 +139,7 @@ pipeline {
                         def zapStatus = sh(
                             script: '''
                                 docker run --rm -v $WORKSPACE:/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable \
-                                  zap-baseline.py -t https://stage-app.everythingops.io/ \
+                                  zap-baseline.py -t https://stage-app.didiops.space/ \
                                   -r zap-report.html -J zap-report.json
                             ''',
                             returnStatus: true
@@ -149,9 +149,9 @@ pipeline {
                         // errors; treat it as informational (like the other scan stages above)
                         // rather than aborting the promotion to prod.
                         if (zapStatus != 0) {
-                            slackSend(color: 'warning', message: "OWASP ZAP baseline scan on stage-app.everythingops.io flagged issues (exit ${zapStatus}) - review zap-report.html on build ${env.BUILD_URL}.", tokenCredentialId: 'slack-cred')
+                            slackSend(color: 'warning', message: "OWASP ZAP baseline scan on stage-app.didiops.space flagged issues (exit ${zapStatus}) - review zap-report.html on build ${env.BUILD_URL}.", tokenCredentialId: 'slack-cred')
                         } else {
-                            slackSend(color: 'good', message: "OWASP ZAP baseline scan on stage-app.everythingops.io passed with no alerts.", tokenCredentialId: 'slack-cred')
+                            slackSend(color: 'good', message: "OWASP ZAP baseline scan on stage-app.didiops.space passed with no alerts.", tokenCredentialId: 'slack-cred')
                         }
                     }
                 }
@@ -197,7 +197,7 @@ pipeline {
                 steps {
                     sleep 90
                     script {
-                        def response = sh(script: "curl -s -o /dev/null -w \"%{http_code}\" https://app.everythingops.io", returnStdout: true).trim()
+                        def response = sh(script: "curl -s -o /dev/null -w \"%{http_code}\" https://app.didiops.space", returnStdout: true).trim()
                         if (response == "200") {
                             slackSend(color: 'good', message: "Prod app is UP (${response})", tokenCredentialId: 'slack-cred')
                         } else {
